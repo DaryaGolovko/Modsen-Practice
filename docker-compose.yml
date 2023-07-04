@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  elasticsearch:
+    image: elasticsearch:8.6.2
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+    volumes:
+      - type: volume
+        source: es_data
+        target: /usr/share/elasticsearch/data
+    ports:
+      - target: 9200
+        published: 9200
+    networks:
+      - es_net
+
+  kibana:
+    image: kibana:8.6.2
+    ports:
+      - target: 5601
+        published: 5601
+    networks:
+      - es_net
+    depends_on:
+      - elasticsearch
+
+  postgres:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  es_data:
+    driver: local
+  postgres:
+    driver: local
+
+networks:
+  es_net:
+    name: es_net
+    driver: bridge
