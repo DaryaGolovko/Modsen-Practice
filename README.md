@@ -24,7 +24,7 @@ __Методы:__
 - Удаление документа из БД и индекса по полю  `id`.
 
 
-__Гайд по поднятию:__
+# Гайд по поднятию:
 (доработать: внести команды в docker-compose
  - подгружение данных в постгрес
 psql -d postgres
@@ -37,8 +37,8 @@ CSV HEADER;
 alembic upgrade head
 )
 
- # docker build -t searcher ./
- # docker-compose up -d
+ - docker build -t searcher ./
+ - docker-compose up -d
 
 (тоже внести в docker-compose - пофиксить порт - localhost:8000 только в докере)
  - uvicorn backend.main:app --reload
