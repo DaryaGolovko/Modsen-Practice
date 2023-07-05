@@ -7,11 +7,11 @@ router = APIRouter()
 
 
 @router.get("/search/")
-def search(text: str):
+async def search(text: str):
     return search_text(text)
 
 
 @router.get("/delete/")
-def search(id: str):
+async def search(id: str):
     pg_delete(id)
     return es_delete(id)
