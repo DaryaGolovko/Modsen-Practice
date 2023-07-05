@@ -1,20 +1,6 @@
-import os
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from elasticsearch import Elasticsearch
-from dotenv import load_dotenv
-from backend.database.pg_managing import *
-
-load_dotenv()
-
-DB_HOST = os.environ.get("DB_HOST")
-DB_NAME = os.environ.get("DB_NAME")
-DB_USER = os.environ.get("DB_USER")
-DB_PASS = os.environ.get("DB_PASS")
-
-DB_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
-
-engine = create_engine(DB_URL, echo=True)
+from backend.database.pg_managing import engine, Base, Page
 
 es = Elasticsearch("http://localhost:9200")
 
@@ -50,7 +36,7 @@ def connect_es():
 
 def search_text(text: str):
     if not es.indices.exists(index=INDEX_NAME):
-        return "no data"
+        connect_es()
     result = es.search(index=INDEX_NAME, body={
         "size": 20,
         "query": {
@@ -61,3 +47,25 @@ def search_text(text: str):
     })
     result_ids = [[item["_source"]["id"], item["_source"]["text"]] for item in result["hits"]["hits"]]
     return result_ids
+
+
+def delete_by_id(id_del: str):
+    if not es.indices.exists(index=INDEX_NAME):
+        connect_es()
+
+    body = {
+        "size": 1,
+        "query": {
+            "match": {
+                "id": id_del
+            }
+        }
+    }
+
+    es_obj = es.search(index=INDEX_NAME, body=body)["hits"]["hits"]
+
+    if not es_obj:
+        return "No such element"
+
+    es.delete(index=INDEX_NAME, id=es_obj[0]['_id'])
+    return f"Deleted id:{id_del}"
